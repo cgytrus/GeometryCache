@@ -80,21 +80,24 @@ bool __fastcall CCImage_initWithImageData_H(CCImage* self, void*, void* pData, i
         CCImage_initWithImageData(self, pData, nDataLen, eFmt, nWidth, nHeight, nBitsPerComponent);
 }
 
+void hook(HMODULE module, const char* symbol, void* detour, void** orig) {
+    MH_CreateHook(reinterpret_cast<void*>(GetProcAddress(module, symbol)), detour, orig);
+}
+
 DWORD WINAPI mainThread(void* hModule) {
     MH_Initialize();
 
-    auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
-    auto cocos2dBase = reinterpret_cast<uintptr_t>(GetModuleHandle("libcocos2d.dll"));
+    auto cocos2d = GetModuleHandle("libcocos2d.dll");
 
-    MH_CreateHook(reinterpret_cast<void*>(cocos2dBase + 0xc7380),
+    hook(cocos2d, "?initWithImageFile@CCImage@cocos2d@@QAE_NPBDW4EImageFormat@12@@Z",
         reinterpret_cast<void*>(&CCImage_initWithImageFile_H),
         reinterpret_cast<void**>(&CCImage_initWithImageFile));
 
-    MH_CreateHook(reinterpret_cast<void*>(cocos2dBase + 0xc7450),
+    hook(cocos2d, "?initWithImageFileThreadSafe@CCImage@cocos2d@@QAE_NPBDW4EImageFormat@12@@Z",
         reinterpret_cast<void*>(&CCImage_initWithImageFileThreadSafe_H),
         reinterpret_cast<void**>(&CCImage_initWithImageFileThreadSafe));
 
-    MH_CreateHook(reinterpret_cast<void*>(cocos2dBase + 0xc7280),
+    hook(cocos2d, "?initWithImageData@CCImage@cocos2d@@QAE_NPAXHW4EImageFormat@12@HHH@Z",
         reinterpret_cast<void*>(&CCImage_initWithImageData_H),
         reinterpret_cast<void**>(&CCImage_initWithImageData));
 
