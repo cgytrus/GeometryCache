@@ -95,6 +95,12 @@ bool __fastcall CCImage_initWithImageData_H(CCImage* self, void*, void* pData, i
         CCImage_initWithImageData(self, pData, nDataLen, eFmt, nWidth, nHeight, nBitsPerComponent);
 }
 
+// force RGBA8888
+void (__cdecl* CCTexture2D_setDefaultAlphaPixelFormat)(CCTexture2DPixelFormat);
+void __cdecl CCTexture2D_setDefaultAlphaPixelFormat_H(CCTexture2DPixelFormat format) {
+    CCTexture2D_setDefaultAlphaPixelFormat(kCCTexture2DPixelFormat_RGBA8888);
+}
+
 void hook(HMODULE module, const char* symbol, void* detour, void** orig) {
     MH_CreateHook(reinterpret_cast<void*>(GetProcAddress(module, symbol)), detour, orig);
 }
@@ -115,6 +121,10 @@ DWORD WINAPI mainThread(void* hModule) {
     hook(cocos2d, "?initWithImageData@CCImage@cocos2d@@QAE_NPAXHW4EImageFormat@12@HHH@Z",
         reinterpret_cast<void*>(&CCImage_initWithImageData_H),
         reinterpret_cast<void**>(&CCImage_initWithImageData));
+
+    hook(cocos2d, "?setDefaultAlphaPixelFormat@CCTexture2D@cocos2d@@SAXW4CCTexture2DPixelFormat@2@@Z",
+        reinterpret_cast<void*>(&CCTexture2D_setDefaultAlphaPixelFormat_H),
+        reinterpret_cast<void**>(&CCTexture2D_setDefaultAlphaPixelFormat));
 
     MH_EnableHook(MH_ALL_HOOKS);
 
